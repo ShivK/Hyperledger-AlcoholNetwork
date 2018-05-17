@@ -1,0 +1,232 @@
+/**
+ * Alcohol Permits network
+ */
+namespace gov.alcoholttb.network
+
+/**
+  * Enumerations for Participants
+  */
+
+enum Gender {
+ o MALE
+ o FEMALE
+ o OTHER
+}
+
+enum Designation {
+ o PARTNER
+ o MANAGER
+ o DIRECTOR
+ o OFFICER
+ o STOCKHOLDER 
+}
+
+enum Commodity {
+ o BREWERY
+ o WINERY
+ o DISTILLEDSPIRITS
+}
+
+enum ApplicantType {
+ o CORPORATION
+ o LLC
+ o PARTNERSHIP
+ o SOLE_OWNERSHIP
+}
+
+enum ApplicationReason {
+ o NEW_BUSINESS
+ o CHANGE_IN_OWNERSHIP
+ o CHANGE_IN_CONTROL
+}
+
+/**
+ * A concept for a simple street address
+ */
+concept Address {
+  o String city
+  o String country
+  o String state
+  o String street1
+  o String street2 optional
+  o String postalCode
+  o String postOfficeBoxNumber optional
+}
+
+concept BusinessPremise {
+  o String contactName
+  o String contactPhone
+  o Address address 
+  
+}
+
+
+/**
+ * A OwnerOfficer participant identified by employer identification Id 
+ */
+abstract participant OwnerOfficer identified by EIN {
+  o String EIN
+  o String firstName
+  o String lastName
+}
+
+participant Individual extends OwnerOfficer {
+    o Gender gender
+    o String otherName optional
+    o String email  
+    o String phone	
+    o String placeOfBirthCity
+    o String placeOfBirthState
+	o Boolean isUSCitizen
+	o String arrestRecord optional
+    o Address address
+}
+
+participant Employee extends Individual {
+    o Designation designation
+}
+
+
+/**
+ * A Regulator participant
+ */
+participant Regulator identified by Id {
+  o String Id
+  o String firstName
+  o String lastName
+}
+
+/**
+ * A Civic Authority participant
+ */
+participant CivicAuthority identified by Id {
+  o String Id
+  o String firstName
+  o String lastName
+}
+
+/**
+  * Enumerations for Assets
+  */
+
+enum ApplicationStatus {
+ o ACCEPTABLE
+ o INITIAL_ANALYSIS
+ o ACCEPTED
+ o DOC_MISSING
+ o CORRECTION_NEEDED
+ o GRANTED
+ o ABANDONED 
+ o REVOKED
+ o PENDING_APPEAL
+}
+
+enum AppealStatus {
+ o DISPOSED 
+ o PENDING
+ o ACCEPTED
+}
+
+/**
+ * An Application
+ */
+asset ApplicationDetail identified by appDetId {
+  o String appDetId
+  o DateTime dateApplied
+  o ApplicationReason reason
+  o BusinessPremise premise
+  o Commodity[] commodities
+  o String[] permitIdOfPredecessor optional
+  --> OwnerOfficer owner
+  --> OwnerOfficer[] otherOwners optional
+}
+asset Application identified by appId {
+  o String appId
+  o ApplicationStatus appStatus  
+  o String[] appealIds optional
+  --> ApplicationDetail appDetail    
+  --> OwnerOfficer owner
+}
+
+asset Appeal identified by Id {
+  o String Id
+  o String appId
+  o String reason
+  o AppealStatus appealStatus  
+}
+
+/**
+ * A Business Premise for which a permit is granted
+ * A Permit is granted for a premise and a Owner
+ */
+asset Permit identified by permitId {
+  o String permitId
+  o DateTime dateGranted  
+  --> OwnerOfficer owner
+  --> ApplicationDetail appDetail
+}
+
+
+/**
+ * Transaction to create an application
+ */
+transaction SubmitApplication {
+  o String appId
+  --> ApplicationDetail appDet
+  --> OwnerOfficer submitter
+}
+
+event SubmitApplicationEvent {
+  o String appId
+}
+/**
+ * Transaction to submit an Appeal
+ */
+transaction SubmitAppeal {
+  o String appealId
+  o String appId
+  o String reason
+}
+
+event SubmitAppealEvent {
+  o String appealId
+  o String appId
+}
+
+
+
+/**
+ * Transaction to update the status of an application
+ */
+transaction UpdateApplicationStatus{
+  o ApplicationStatus appStatus
+  o DateTime updateDate
+  o String appId  
+}
+
+event UpdateApplicationStatusEvent {
+  o ApplicationStatus appStatus
+  o String appId
+}
+
+transaction UpdateAppealStatus{
+  o AppealStatus appealStatus
+  o DateTime updateDate
+  o String appealId  
+  o String appId    
+}
+
+event UpdateAppealStatusEvent {
+  o AppealStatus appealStatus
+  o String appealId  
+  o String appId    
+}
+
+
+transaction SetupDemo  {
+}
+
+
+
+
+
